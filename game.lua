@@ -331,8 +331,6 @@ end
 
 function moveBlockLeft()
     if (canMove("left")) then
-        print("starting moving block left")
-        
         local typeOfBlock = getTypeOfBlock()
         
         --reassign value of current position of our block to 
@@ -349,8 +347,6 @@ end
 
 function moveBlockRight()
     if (canMove("right")) then
-        print("starting moving block right")
-        
         local typeOfBlock = getTypeOfBlock()
         
         --reassign value of current position of our block to 
@@ -619,7 +615,6 @@ function createBlock()
         --moving our blocks
         myTimer = timer.performWithDelay(delayNormal, moveBlockDown, 0)
     else 
-        print("game over")
         gameOver()
     end
 end
