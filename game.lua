@@ -417,6 +417,13 @@ function moveBlockLeftRightByKey(event)
             gamePaused = false
         end
     end
+
+     if ("down" == event.keyName and "up" == event.phase and not(gamePaused)) then -- speed up
+        timer.cancel( myTimer )
+        myTimer = timer.performWithDelay( 50, moveBlockDown, 0 )
+        print("hot !!!!!!!!!!!!!!!!!!!")
+        audio.play(soundTable["dropDown"])
+    end
  
     -- If the "back" key was pressed on Android, prevent it from backing out of the app
     if ( event.keyName == "back" ) then
