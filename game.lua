@@ -270,7 +270,6 @@ end
 
 function moveBlockDown()
     if (canMove("down")) then
-    --if (false) then --if condition is true then we can not keep moving
         print( "starting moving block down" )
         
         local typeOfBlock = cell[blCell[1].i][blCell[1].j].type
@@ -298,6 +297,32 @@ function moveBlockDown()
         timer.cancel( myTimer )
         --creating new block
         createBlock() 
+    end
+end
+
+function moveBlockLeft()
+    if (canMove("left")) then
+        print( "starting moving block left" )
+        typeOfBlock = cell[blCell[1].i][blCell[1].j].type
+
+        --hiding current
+        for i=1,4,1 do
+            cell[blCell[i].i][blCell[i].j].type = "grid"
+            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)
+        end
+        
+        --reassign value of current position of our block to 
+        for i=1,4,1 do
+            blCell[i].i, blCell[i].j = blCell[i].i, blCell[i].j-1
+        end
+
+        --"moving" our block i coluns left by filling colors of those cells
+        for i=1,4,1 do
+            cell[blCell[i].i][blCell[i].j].type = typeOfBlock
+            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)            
+        end
+
+        audio.play(soundTable["moveLeftRightUp"])
     end
 end
 
@@ -385,6 +410,7 @@ function moveBlockLeftRight(event)
     end    
 end
 
+
 -- TODO: debug in simulator
 function moveBlockLeftRightByKey(event)
     -- Print which key was pressed down/up
@@ -418,11 +444,15 @@ function moveBlockLeftRightByKey(event)
         end
     end
 
-     if ("down" == event.keyName and "up" == event.phase and not(gamePaused)) then -- speed up
+    if ("down" == event.keyName and "up" == event.phase and not(gamePaused)) then -- speed up
         timer.cancel( myTimer )
         myTimer = timer.performWithDelay( 50, moveBlockDown, 0 )
         print("hot !!!!!!!!!!!!!!!!!!!")
         audio.play(soundTable["dropDown"])
+    end
+
+    if ("left" == event.keyName and "up" == event.phase and not(gamePaused)) then -- speed up
+        moveBlockLeft()
     end
  
     -- If the "back" key was pressed on Android, prevent it from backing out of the app
