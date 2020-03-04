@@ -16,7 +16,7 @@ math.randomseed( os.time() )
 local sceneGroup
 local rows, columns = 24, 12
 local screenWidth, screenHeight, halfW, halfH = display.contentWidth, display.contentHeight, display.contentCenterX, display.contentCenterY
-local cellSize = screenHeight/(rows-2) --deciding size of our cell dividing
+local cellSize = screenHeight/(rows - 2) --deciding size of our cell dividing
 
 --these are coordinates of the beginning for our shifted coordinate system
 local gridBeginX, gridBeginY = (screenWidth-cellSize*columns)/2, -(cellSize*2) -- knowing that two rows are hidden we shift beginning of our coordanation system to new place
@@ -78,11 +78,7 @@ function createGrid() -- our grid system has 12 columns and 24 rows with 2 most-
             cell[i][j].strokeWidth = 0
             cell[i][j]:setFillColor(color["grid"][1], color["grid"][2], color["grid"][3])
             cell[i][j].type = "grid"
-            
-            -- cell[i][j].pixel1 = display.newRect( centerOfCellX-(cellSize*0.081*4), centerOfCellY-(cellSize*0.081*4), cellSize*0.081, cellSize*0.081 )
-            -- cell[i][j].pixel1.strokeWidth = 0
-            -- cell[i][j].pixel1:setFillColor(1,1,1)
-            -- cell[i][j].pixel1.alpha = 0.5
+        
 
             cell[i][j].pixel2 = display.newRect( centerOfCellX-(cellSize*0.081*3), centerOfCellY-(cellSize*0.081*3), cellSize*0.081, cellSize*0.081 )
             cell[i][j].pixel2.strokeWidth = 0
@@ -157,7 +153,6 @@ function createGrid() -- our grid system has 12 columns and 24 rows with 2 most-
 end
 
 function canMove( mode )
-    print("can move funtion called")
     if (mode == "down") then
         local downIsFloor = false
         for i=1,4 do
@@ -166,7 +161,6 @@ function canMove( mode )
             end
         end
         if downIsFloor then  --if true then the one block down is floor
-            print("can NOT MOVE down")
             --make the current position be floor also
             for i=1,4,1 do
                 cell[blCell[i].i][blCell[i].j].isFloor = true
@@ -176,7 +170,6 @@ function canMove( mode )
             --stop falling of current block
             return false -- we can not keep moving our block down
         else
-            print("can move down")
             return true -- there is no floor block down there, we can move one more step
         end
     elseif (mode == "right" and not(gamePaused)) then
@@ -220,6 +213,40 @@ end
 function colorTheCell( cellX, cellY, typeOfBlock )
     cell[cellX][cellY]:setFillColor(color[typeOfBlock][1], color[typeOfBlock][2], color[typeOfBlock][3])
     cell[cellX][cellY].color = {color[typeOfBlock][1], color[typeOfBlock][2], color[typeOfBlock][3]}
+end
+
+-- get block boundary coordinates
+function getBlockBound()
+    local blockBound = {}
+    local left = cellSize * columns
+    local right = cellSize * 0
+    local top = cellSize * rows
+    local bottom = 0
+    for index=1,4,1 do
+        local i, j = blCell[index].i, blCell[index].j
+        if (cellSize * (j - 1)) < left then
+            left = cellSize * (j - 1)
+        end
+
+        if (cellSize * j) > right then
+            right = cellSize * j
+        end
+
+        if (cellSize * (i - 1)) < top then
+            top = cellSize * (i - 1)
+        end
+
+        if (cellSize * i) > bottom then
+            bottom = cellSize * i
+        end
+    end
+    
+    blockBound.left = left
+    blockBound.right = right
+    blockBound.top = top
+    blockBound.bottom = bottom
+
+    return blockBound
 end
 
 function rotateBlockByTap( event )
@@ -292,9 +319,7 @@ function moveBlock(typeOfBlock)
 end
 
 function moveBlockDown()
-    if (canMove("down")) then
-        print( "starting moving block down" )
-        
+    if (canMove("down")) then       
         local typeOfBlock = getTypeOfBlock()
  
         --reassign value of current position of our block to 
@@ -304,8 +329,6 @@ function moveBlockDown()
 
         --"moving" our block i rows down by filling colors of those cells
         moveBlock(typeOfBlock)
-
-        print( "finished moving block down" )
     else
         --cancel timer
         print("going to cancel timer")
@@ -351,97 +374,41 @@ function moveBlockRight()
     end
 end
 
+-- touch
 function moveBlockLeftRight(event)
     
-    if event.phase == "began" and not(gamePaused) then        
+    if event.phase == "began" and not(gamePaused) then     
         beginX, beginY = event.x, event.y
         beginTime = os.time( t )
-        print("you presed at X="..beginX.." and Y="..beginY)
-    end
-    
-    if event.phase == "ended" and not(gamePaused) then
-        endX, endY = event.x, event.y
-        endTime = os.time( t )
-        
-        print("you ended at X="..endX.." and Y="..endY)
-        
-        if (endTime-beginTime)<2 then -- this condition makes sure that we slide (to prevent moving our block after resuming game )
-            if (math.abs(endX-beginX) >= math.abs(endY-beginY)) then -- is true we decide weather to move left or right
-                if (endX-beginX)>0 then
-                    if (canMove("right")) then
-                         print( "starting moving block right" )
-                        
-                        typeOfBlock = cell[blCell[1].i][blCell[1].j].type
+        print("you pressed at X="..beginX.." and Y="..beginY)
+        local blockBound = getBlockBound()
+        print("top="..blockBound.top.." and bottom="..blockBound.bottom.." and left="..blockBound.left.." and right="..blockBound.right)
 
-                        --hiding current
-                        for i=1,4,1 do
-                            cell[blCell[i].i][blCell[i].j].type = "grid"
-                            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)
-                        end
-                        
-                        --reassign value of current position of our block to 
-                        for i=1,4,1 do
-                            blCell[i].i, blCell[i].j = blCell[i].i, blCell[i].j+1
-                        end
-
-                        --"moving" our block i coluns right by filling colors of those cells
-                        for i=1,4,1 do
-                            cell[blCell[i].i][blCell[i].j].type = typeOfBlock
-                            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)            
-                        end
-
-                        audio.play(soundTable["moveLeftRightUp"])
-                    end
-                elseif (endX-beginX)<0 then
-                    if (canMove("left")) then
-                         print( "starting moving block left" )
-                        typeOfBlock = cell[blCell[1].i][blCell[1].j].type
-
-                        --hiding current
-                        for i=1,4,1 do
-                            cell[blCell[i].i][blCell[i].j].type = "grid"
-                            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)
-                        end
-                        
-                        --reassign value of current position of our block to 
-                        for i=1,4,1 do
-                            blCell[i].i, blCell[i].j = blCell[i].i, blCell[i].j-1
-                        end
-
-                        --"moving" our block i coluns left by filling colors of those cells
-                        for i=1,4,1 do
-                            cell[blCell[i].i][blCell[i].j].type = typeOfBlock
-                            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)            
-                        end
-
-                        audio.play(soundTable["moveLeftRightUp"])
-                    end
-                end
-            else -- we decide weather to speedup falling or set it to default falling speed
-                if ((endY-beginY)>0 and not(gamePaused)) then -- speed up
-                    timer.cancel( myTimer )
-                    myTimer = timer.performWithDelay( 50, moveBlockDown, 0 )
-                    print("hot !!!!!!!!!!!!!!!!!!!")
-                    audio.play(soundTable["dropDown"])
-                elseif ((endY-beginY)<0 and not(gamePaused)) then --set default speed
-                    timer.cancel( myTimer )
-                    myTimer = timer.performWithDelay( delayNormal, moveBlockDown, 0 )
-                    print("cool down")
-                    audio.play(soundTable["moveLeftRightUp"])
-                end
-            end           
+        if beginX < blockBound.left then
+            moveBlockLeft()
+        elseif beginX > blockBound.right then
+            moveBlockRight()
+        elseif beginY < blockBound.top then
+            rotateBlock()
+        elseif beginY > blockBound.bottom then
+            -- speed up
+            timer.cancel( myTimer )
+            myTimer = timer.performWithDelay(50, moveBlockDown, 0)
+            audio.play(soundTable["dropDown"])
         end
-        
-    end    
+    end
+
+    if event.phase == "ended" and not(gamePaused) then
+        --set default speed
+        timer.cancel(myTimer)
+        myTimer = timer.performWithDelay( delayNormal, moveBlockDown, 0 )
+        audio.play(soundTable["moveLeftRightUp"])
+    end
 end
 
 
 -- TODO: debug in simulator
 function moveBlockLeftRightByKey(event)
-    -- Print which key was pressed down/up
-    local message = "Key '" .. event.keyName .. "' was pressed " .. event.phase
-    print( message )
-
     if "space" == event.keyName and "up" == event.phase then
         if not(gamePaused) then
             -- pause
@@ -514,15 +481,6 @@ function moveBlockLeftRightByKey(event)
 
 end
 
--- function timereraseEffect( rowToErase )
---     print("timereraseEffect!!!!!!!!!!!!!!!")
---     for i=1,columns do
---         local blockShapeTable = {"I", "J", "L", "S", "O", "Z", "T"}
---         blockShape = blockShapeTable[math.random(1,#blockShapeTable)]
---         colorTheCell(rowToErase,i,blockShape)
---     end
--- end
-
 function eraseLines()
     for erase=rows,3,-1 do
         local eraseRow = true
@@ -532,11 +490,6 @@ function eraseLines()
             end
         end
         if eraseRow then
-            --erasing line and shifting everything above it down
-            -- timer.pause( myTimer )
-            -- myTimerErase = timer.performWithDelay( 500, timereraseEffect(erase), 10 )
-            -- timer.resume( myTimer )
-
             for i=erase,3,-1 do
                 for j=1,columns do
                     colorTheCell(i,j,cell[i-1][j].type)
@@ -676,9 +629,6 @@ function createBlock()
                 colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)
             end
         end
-
-        
-        print( "block created "..blockShape)
         
         --moving our blocks
         myTimer = timer.performWithDelay( delayNormal, moveBlockDown, 0 )
@@ -748,7 +698,7 @@ function scene:show( event )
 
     if ( phase == "will" ) then
         -- Code here runs when the scene is still off screen (but is about to come on screen)
-        display.setDefault( "background", 0, 0.5, 1 )
+        display.setDefault( "background", 1, 1, 1, 0)
         backGround = display.newRect (halfW, halfH, screenWidth, screenHeight)
         sceneGroup:insert( backGround )
         backGround:setFillColor( color["background"][1], color["background"][2], color["background"][3] )
@@ -822,16 +772,9 @@ function scene:show( event )
         end
           
         sceneGroup:addEventListener("touch", moveBlockLeftRight)
-        sceneGroup:addEventListener("tap", rotateBlockByTap)
-
-
+        -- sceneGroup:addEventListener("tap", rotateBlockByTap)
     end
-
-    
-
-
 end
-
 
 -- hide()
 function scene:hide( event )
