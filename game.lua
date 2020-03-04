@@ -312,24 +312,34 @@ end
 function moveBlockLeft()
     if (canMove("left")) then
         print( "starting moving block left" )
+        
         local typeOfBlock = getTypeOfBlock()
-
-        --hiding current
-        for i=1,4,1 do
-            cell[blCell[i].i][blCell[i].j].type = "grid"
-            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)
-        end
         
         --reassign value of current position of our block to 
         for i=1,4,1 do
             blCell[i].i, blCell[i].j = blCell[i].i, blCell[i].j-1
         end
 
-        --"moving" our block i coluns left by filling colors of those cells
+        --"moving" our block i columns left by filling colors of those cells
+        moveBlock(typeOfBlock)
+
+        audio.play(soundTable["moveLeftRightUp"])
+    end
+end
+
+function moveBlockRight()
+    if (canMove("right")) then
+        print( "starting moving block right" )
+        
+        local typeOfBlock = getTypeOfBlock()
+        
+        --reassign value of current position of our block to 
         for i=1,4,1 do
-            cell[blCell[i].i][blCell[i].j].type = typeOfBlock
-            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)            
+            blCell[i].i, blCell[i].j = blCell[i].i, blCell[i].j+1
         end
+
+        --"moving" our block i columns right by filling colors of those cells
+        moveBlock(typeOfBlock)
 
         audio.play(soundTable["moveLeftRightUp"])
     end
@@ -454,6 +464,13 @@ function moveBlockLeftRightByKey(event)
     end
     
     if ("up" == event.phase and not(gamePaused)) then
+        if ("up" == event.keyName) then --set default speed
+            timer.cancel( myTimer )
+            myTimer = timer.performWithDelay( delayNormal, moveBlockDown, 0 )
+            print("cool down")
+            audio.play(soundTable["moveLeftRightUp"])
+        end
+
         if ("down" == event.keyName) then -- speed up
             timer.cancel( myTimer )
             myTimer = timer.performWithDelay( 50, moveBlockDown, 0 )
@@ -461,8 +478,12 @@ function moveBlockLeftRightByKey(event)
             audio.play(soundTable["dropDown"])
         end
 
-        if ("left" == event.keyName) then -- speed up
+        if ("left" == event.keyName) then
             moveBlockLeft()
+        end
+
+        if ("right" == event.keyName) then
+            moveBlockRight()
         end
     end
  
