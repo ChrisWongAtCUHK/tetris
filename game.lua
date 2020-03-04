@@ -222,8 +222,13 @@ function colorTheCell( cellX, cellY, typeOfBlock )
     cell[cellX][cellY].color = {color[typeOfBlock][1], color[typeOfBlock][2], color[typeOfBlock][3]}
 end
 
-function rotateBlock( event )
-    if ((2 == event.numTaps) and (blockShape ~= "O") and not(gamePaused)) then
+function rotateBlockByTap( event )
+    if (2 == event.numTaps) then
+        rotateBlock()
+    end
+end
+function rotateBlock( )
+    if ((blockShape ~= "O") and not(gamePaused)) then
         print("rotate"..blockShape)
         P = {blCell[2].i, blCell[2].j}        
         
@@ -463,27 +468,35 @@ function moveBlockLeftRightByKey(event)
         end
     end
     
-    if ("up" == event.phase and not(gamePaused)) then
-        if ("up" == event.keyName) then --set default speed
-            timer.cancel( myTimer )
-            myTimer = timer.performWithDelay( delayNormal, moveBlockDown, 0 )
-            print("cool down")
-            audio.play(soundTable["moveLeftRightUp"])
-        end
-
-        if ("down" == event.keyName) then -- speed up
+    if ("down" == event.keyName and not(gamePaused)) then
+        if("down" == event.phase) then
+            -- speed up
             timer.cancel( myTimer )
             myTimer = timer.performWithDelay( 50, moveBlockDown, 0 )
             print("hot !!!!!!!!!!!!!!!!!!!")
             audio.play(soundTable["dropDown"])
+        else 
+            if("up" == event.phase) then
+                --set default speed
+                timer.cancel( myTimer )
+                myTimer = timer.performWithDelay( delayNormal, moveBlockDown, 0 )
+                print("cool down")
+                audio.play(soundTable["moveLeftRightUp"])
+            end
         end
+    end
 
+    if ("up" == event.phase and not(gamePaused)) then
         if ("left" == event.keyName) then
-            moveBlockLeft()
+            rotateBlockByKey()
         end
 
         if ("right" == event.keyName) then
             moveBlockRight()
+        end
+
+        if ("up" == event.keyName) then
+            moveBlockLeft()
         end
     end
  
@@ -808,7 +821,7 @@ function scene:show( event )
         end
           
         sceneGroup:addEventListener("touch", moveBlockLeftRight)
-        sceneGroup:addEventListener("tap", rotateBlock)
+        sceneGroup:addEventListener("tap", rotateBlockByTap)
 
 
     end
