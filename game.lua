@@ -268,16 +268,28 @@ function rotateBlock( event )
     end
 end
 
+function getTypeOfBlock()
+    local typeOfBlock = cell[blCell[1].i][blCell[1].j].type
+    --hiding current
+    for i=1,4,1 do
+        cell[blCell[i].i][blCell[i].j].type = "grid"
+        colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)
+    end
+    return typeOfBlock
+end
+
+function moveBlock(typeOfBlock)
+    for i=1,4,1 do
+        cell[blCell[i].i][blCell[i].j].type = typeOfBlock
+        colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)            
+    end
+end
+
 function moveBlockDown()
     if (canMove("down")) then
         print( "starting moving block down" )
         
-        local typeOfBlock = cell[blCell[1].i][blCell[1].j].type
-        --hiding current
-        for i=1,4,1 do
-            cell[blCell[i].i][blCell[i].j].type = "grid"
-            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)
-        end
+        local typeOfBlock = getTypeOfBlock()
  
         --reassign value of current position of our block to 
         for i=1,4,1 do
@@ -285,10 +297,7 @@ function moveBlockDown()
         end
 
         --"moving" our block i rows down by filling colors of those cells
-        for i=1,4,1 do
-            cell[blCell[i].i][blCell[i].j].type = typeOfBlock
-            colorTheCell(blCell[i].i, blCell[i].j, cell[blCell[i].i][blCell[i].j].type)            
-        end
+        moveBlock(typeOfBlock)
 
         print( "finished moving block down" )
     else
@@ -303,7 +312,7 @@ end
 function moveBlockLeft()
     if (canMove("left")) then
         print( "starting moving block left" )
-        typeOfBlock = cell[blCell[1].i][blCell[1].j].type
+        local typeOfBlock = getTypeOfBlock()
 
         --hiding current
         for i=1,4,1 do
@@ -443,16 +452,18 @@ function moveBlockLeftRightByKey(event)
             gamePaused = false
         end
     end
+    
+    if ("up" == event.phase and not(gamePaused)) then
+        if ("down" == event.keyName) then -- speed up
+            timer.cancel( myTimer )
+            myTimer = timer.performWithDelay( 50, moveBlockDown, 0 )
+            print("hot !!!!!!!!!!!!!!!!!!!")
+            audio.play(soundTable["dropDown"])
+        end
 
-    if ("down" == event.keyName and "up" == event.phase and not(gamePaused)) then -- speed up
-        timer.cancel( myTimer )
-        myTimer = timer.performWithDelay( 50, moveBlockDown, 0 )
-        print("hot !!!!!!!!!!!!!!!!!!!")
-        audio.play(soundTable["dropDown"])
-    end
-
-    if ("left" == event.keyName and "up" == event.phase and not(gamePaused)) then -- speed up
-        moveBlockLeft()
+        if ("left" == event.keyName) then -- speed up
+            moveBlockLeft()
+        end
     end
  
     -- If the "back" key was pressed on Android, prevent it from backing out of the app
