@@ -385,6 +385,52 @@ function moveBlockLeftRight(event)
     end    
 end
 
+-- TODO: debug in simulator
+function moveBlockLeftRightByKey(event)
+    -- Print which key was pressed down/up
+    local message = "Key '" .. event.keyName .. "' was pressed " .. event.phase
+    print( message )
+
+    if "space" == event.keyName and "up" == event.phase then
+        if not(gamePaused) then
+            -- pause
+            gamePaused = true
+            local options = {
+                isModal = true,
+                effect = "flip",
+                time = 400,
+            }
+            timer.pause( myTimer )
+            composer.showOverlay( "pause", options )
+        else
+            -- resume
+            local options = {
+                isModal = true,
+                effect = "crossFade",
+                time = 1000,
+            }
+
+            composer.hideOverlay( "game", options )
+            display.remove( text )
+            text = nil
+            timer.resume( myTimer )
+            gamePaused = false
+        end
+    end
+ 
+    -- If the "back" key was pressed on Android, prevent it from backing out of the app
+    if ( event.keyName == "back" ) then
+        if ( system.getInfo("platform") == "android" ) then
+            return true
+        end
+    end
+ 
+    -- IMPORTANT! Return false to indicate that this app is NOT overriding the received key
+    -- This lets the operating system execute its default handling of the key
+    return false
+
+end
+
 -- function timereraseEffect( rowToErase )
 --     print("timereraseEffect!!!!!!!!!!!!!!!")
 --     for i=1,columns do
@@ -685,8 +731,13 @@ function scene:show( event )
         
         sceneGroup:insert( currentScore )
         sceneGroup:insert( bestScore )
-        
-        
+
+        -- TODO: debug in simulator
+        if system.getInfo( "environment" ) == "simulator" then
+            -- Add the key event listener
+            Runtime:addEventListener("key", moveBlockLeftRightByKey)
+        end
+          
         sceneGroup:addEventListener("touch", moveBlockLeftRight)
         sceneGroup:addEventListener("tap", rotateBlock)
 
