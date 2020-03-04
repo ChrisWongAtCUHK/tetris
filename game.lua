@@ -227,6 +227,7 @@ function rotateBlockByTap( event )
         rotateBlock()
     end
 end
+
 function rotateBlock( )
     if ((blockShape ~= "O") and not(gamePaused)) then
         print("rotate"..blockShape)
@@ -488,7 +489,7 @@ function moveBlockLeftRightByKey(event)
 
     if ("up" == event.phase and not(gamePaused)) then
         if ("left" == event.keyName) then
-            rotateBlockByKey()
+            moveBlockLeft()
         end
 
         if ("right" == event.keyName) then
@@ -496,7 +497,7 @@ function moveBlockLeftRightByKey(event)
         end
 
         if ("up" == event.keyName) then
-            moveBlockLeft()
+            rotateBlock()
         end
     end
  
